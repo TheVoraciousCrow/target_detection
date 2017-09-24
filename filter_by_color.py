@@ -17,14 +17,14 @@ gray = cv2.cvtColor(sourcePixel, cv2.COLOR_BGR2GRAY)
 edge = cv2.Canny(sourcePixel, 100,200)
 
 #show image with edges only to test if it is working
-cv2.imshow("edgish", edge)
-cv2.waitKey(0)
+#cv2.imshow("edgish", edge)
+#cv2.waitKey(0)
 
 #create an array containing the three desired color ranges
 boundaries =[
-                ([17, 15, 100], [50, 56, 200]),
-                ([86, 31, 4], [220, 88, 50]),
-                ([25, 146, 190], [62, 174, 250]),
+                ([65, 5, 0], [125, 65, 35]),
+                ([45, 180, 200], [75, 210, 235]),
+                ([55, 55, 180], [115, 105, 240]),
                 ]
     #loop through the ranges
 for (lower, upper) in boundaries:
@@ -41,7 +41,7 @@ for (lower, upper) in boundaries:
 
     #now we will find the actual edges in the photo
     (_, contours, _) = cv2.findContours(edgyPhoto.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    contours = sorted(contours, key = cv2.contourArea, reverse = True)
+    #contours = sorted(contours, key = cv2.contourArea, reverse = True)
     screenContour = None #initialize variable
 
     for cntr in contours:
@@ -50,7 +50,7 @@ for (lower, upper) in boundaries:
         approx = cv2.approxPolyDP(cntr, 0.01 * peri, True)
             #checks how many points in each contour, four points => square
         if len(approx) >= 4 and len(approx) <= 6:
-            (x, y, w, h) = cv2.boundRect(approx)
+            (x, y, w, h) = cv2.boundingRect(approx)
             aspectRatio = w / float(h)
 
             #compute the solidity of the original contours
@@ -60,23 +60,20 @@ for (lower, upper) in boundaries:
 
             #check to see if the width, height, and solidity and aspect ratio
             #fall within the appropriate bounds
-            keepDims = w> 225 adn h > 25
+            keepDims = w > 30 and h > 30
             keepSolidity = solidity > 0.9
             keepAspectRatio = aspectRatio >= 0.8 and aspectRatio <= 1.2
 
             #check to see if all the tests were passed
-            if keepDims and keepSolidity and keepaspectRa:
+            if keepDims and keepSolidity and keepAspectRatio:
                 #draw an outline around the target and update the status
+                cv2.drawContours(blurredOutputArray, [approx], -1, (0, 0, 255), 4)
+                status = "Target aquired"
+                print(status)
+            else:
+                print("Not Aquired", keepDims, keepSolidity, keepAspectRatio)
 
-    cv2.drawContours(blurredOutputArray, [screenContour], -1, (255,255,255), 5)
-
-
-
-
-    #draws rectangle on specified points
-    cv2.rectangle(edgyPhoto, (115,120), (170, 150), (0,255,0), 5) #image,top left, top right, color(b,g,r), thickness
-    cv2.putText(edgyPhoto, "Tarp #{}".format("3"), (130,130), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255,255,0), 1)
-    # show the images
-    #cv2.imshow("images", np.hstack([sourcePixel, blurredOutputArray]))
-    cv2.imshow("edgy", edgyPhoto)
+    #show the filtered images
+    cv2.imshow("images", np.hstack([sourcePixel, blurredOutputArray]))
+    #cv2.imshow("Aquired Target", outputArray)
     cv2.waitKey(0)
