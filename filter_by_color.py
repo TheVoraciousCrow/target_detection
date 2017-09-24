@@ -50,8 +50,23 @@ for (lower, upper) in boundaries:
         approx = cv2.approxPolyDP(cntr, 0.01 * peri, True)
             #checks how many points in each contour, four points => square
         if len(approx) >= 4 and len(approx) <= 6:
-            screenContour = approx
-            break
+            (x, y, w, h) = cv2.boundRect(approx)
+            aspectRatio = w / float(h)
+
+            #compute the solidity of the original contours
+            area = cv2.contourArea(cntr)
+            hullArea = cv2.contourArea(cv2.convexHull(cntr))
+            solidity = area / float(hullArea)
+
+            #check to see if the width, height, and solidity and aspect ratio
+            #fall within the appropriate bounds
+            keepDims = w> 225 adn h > 25
+            keepSolidity = solidity > 0.9
+            keepAspectRatio = aspectRatio >= 0.8 and aspectRatio <= 1.2
+
+            #check to see if all the tests were passed
+            if keepDims and keepSolidity and keepaspectRa:
+                #draw an outline around the target and update the status
 
     cv2.drawContours(blurredOutputArray, [screenContour], -1, (255,255,255), 5)
 
